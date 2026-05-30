@@ -29,6 +29,8 @@ function LoginInner() {
     if (inviteToken) setMode('signup')
   }, [inviteToken])
 
+  const [success, setSuccess] = useState(false)
+
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
     setLoading(true)
@@ -53,10 +55,26 @@ function LoginInner() {
           options: { data: metadata },
         })
         if (error) throw error
-        if (data.user) router.push('/dashboard')
+
+        // Se o email já está confirmado (auto-confirm habilitado), ir direto
+        if (data.user?.email_confirmed_at) {
+          router.push('/dashboard')
+          router.refresh()
+        } else {
+          // Precisa confirmar email primeiro
+          setSuccess(true)
+        }
       }
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : 'Erro ao autenticar')
+      const msg = err instanceof Error ? err.message : 'Erro ao autenticar'
+      // Traduzir mensagens comuns do Supabase
+      if (msg.includes('Database error saving new user')) {
+        setError('Erro ao criar conta. O convite pode ser inválido ou expirado. Peça um novo convite ao administrador.')
+      } else if (msg.includes('User already registered')) {
+        setError('Este email já está cadastrado. Tente fazer login.')
+      } else {
+        setError(msg)
+      }
     } finally {
       setLoading(false)
     }
@@ -82,6 +100,34 @@ function LoginInner() {
 
         {/* Card */}
         <div className="card p-6">
+          {success ? (
+            /* Tela de sucesso — aguardando confirmação de email */
+            <div className="text-center space-y-4">
+              <div className="inline-flex items-center justify-center w-14 h-14 rounded-full mb-2"
+                   style={{ background: 'var(--success-bg)' }}>
+                <span className="text-3xl">✉️</span>
+              </div>
+              <h2 className="text-lg font-semibold" style={{ color: 'var(--text)' }}>
+                Verifique seu email
+              </h2>
+              <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>
+                Enviamos um link de confirmação para <strong style={{ color: 'var(--text)' }}>{email}</strong>.
+                Clique no link para ativar sua conta e acessar o sistema.
+              </p>
+              {inviteToken && (
+                <p className="text-xs" style={{ color: 'var(--accent)' }}>
+                  ✓ Seu convite foi aceito. Após confirmar o email, você entrará na família automaticamente.
+                </p>
+              )}
+              <button
+                onClick={() => { setSuccess(false); setMode('login') }}
+                className="text-sm font-medium mt-2"
+                style={{ color: 'var(--accent)' }}>
+                ← Voltar para login
+              </button>
+            </div>
+          ) : (
+          <>
           {/* Tabs */}
           <div className="flex rounded-lg p-1 mb-6" style={{ background: 'var(--bg-secondary)' }}>
             {(['login', 'signup'] as const).map(m => (
@@ -151,6 +197,8 @@ function LoginInner() {
                 ? 'Você está aceitando um convite e entrará como membro da família.'
                 : 'Ao criar, você será o administrador da família. Convide os demais membros depois.'}
             </p>
+          )}
+          </>
           )}
         </div>
       </div>

@@ -272,7 +272,12 @@ DECLARE
   v_invite_token UUID;
   v_invite       RECORD;
 BEGIN
-  v_invite_token := NULLIF(NEW.raw_user_meta_data->>'invite_token', '')::UUID;
+  -- Tentar extrair invite_token (com proteção contra UUID inválido)
+  BEGIN
+    v_invite_token := NULLIF(NEW.raw_user_meta_data->>'invite_token', '')::UUID;
+  EXCEPTION WHEN invalid_text_representation THEN
+    v_invite_token := NULL;
+  END;
 
   IF v_invite_token IS NOT NULL THEN
     SELECT * INTO v_invite
@@ -291,10 +296,6 @@ BEGIN
 
     v_family_id := v_invite.family_id;
     v_role := 'member';
-
-    UPDATE public.family_invites
-    SET used_at = NOW(), used_by = NEW.id
-    WHERE token = v_invite_token;
   ELSE
     INSERT INTO public.families (name)
     VALUES (COALESCE(NEW.raw_user_meta_data->>'family_name', 'Minha família'))
@@ -302,6 +303,7 @@ BEGIN
     v_role := 'admin';
   END IF;
 
+  -- ★ Criar profile PRIMEIRO (family_invites.used_by referencia profiles.id)
   INSERT INTO public.profiles (id, family_id, name, email, role)
   VALUES (
     NEW.id,
@@ -310,6 +312,14 @@ BEGIN
     NEW.email,
     v_role
   );
+
+  -- ★ Consumir convite DEPOIS (agora o profile já existe)
+  IF v_invite_token IS NOT NULL THEN
+    UPDATE public.family_invites
+    SET used_at = NOW(), used_by = NEW.id
+    WHERE token = v_invite_token;
+  END IF;
+
   RETURN NEW;
 END;
 $$;

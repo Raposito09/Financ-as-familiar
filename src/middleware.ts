@@ -32,7 +32,11 @@ export async function middleware(request: NextRequest) {
 
   // Rotas protegidas — redireciona para login se não autenticado
   if (!user) {
-    return NextResponse.redirect(new URL('/login', request.url))
+    const loginUrl = new URL('/login', request.url)
+    // Preservar token de convite se presente na URL original
+    const invite = request.nextUrl.searchParams.get('invite')
+    if (invite) loginUrl.searchParams.set('invite', invite)
+    return NextResponse.redirect(loginUrl)
   }
 
   return supabaseResponse
