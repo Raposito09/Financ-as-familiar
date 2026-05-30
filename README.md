@@ -414,4 +414,4 @@ supabase/
 
 ## Licença
 
-Projeto interno. Uso restrito conforme orientação da Petlove TI.
+MIT Uso livre
