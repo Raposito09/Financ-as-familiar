@@ -1,0 +1,12 @@
+{
+  "name": "Finança Familiar",
+  "short_name": "Finança",
+  "description": "Controle financeiro familiar com IA",
+  "start_url": "/dashboard",
+  "display": "standalone",
+  "background_color": "#0f0f0f",
+  "theme_color": "#0f0f0f",
+  "orientation": "portrait-primary",
+  "lang": "pt-BR",
+  "scope": "/"
+}

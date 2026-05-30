@@ -1,0 +1,67 @@
+# ============================================================
+# Finança Familiar — .gitignore
+# ============================================================
+
+# dependencies
+/node_modules
+/.pnp
+.pnp.*
+.yarn/*
+!.yarn/patches
+!.yarn/plugins
+!.yarn/releases
+!.yarn/versions
+
+# testing
+/coverage
+
+# next.js
+/.next/
+/out/
+/build
+
+# misc
+.DS_Store
+*.pem
+Thumbs.db
+.idea
+.vscode/*
+!.vscode/settings.json.example
+
+# debug
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+
+# env files (NUNCA commitar segredos)
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+!.env.local.example
+!.env.example
+
+# vercel / netlify / sentry
+.vercel
+.netlify
+.sentryclirc
+
+# typescript
+*.tsbuildinfo
+next-env.d.ts
+
+# python (scripts auxiliares)
+__pycache__/
+*.py[cod]
+*$py.class
+.venv/
+venv/
+
+# diagramas gerados (script Python legado)
+/_diagrams/
+
+# Claude / IDE local
+.claude/settings.local.json
+.history/
