@@ -23,10 +23,18 @@ export async function middleware(request: NextRequest) {
 
   const { data: { user } } = await supabase.auth.getUser()
   const { pathname } = request.nextUrl
+  const code = request.nextUrl.searchParams.get('code')
 
-  // Rotas públicas
-  if (pathname.startsWith('/login')) {
-    if (user) return NextResponse.redirect(new URL('/dashboard', request.url))
+  // Se houver ?code= (confirmação de email Supabase), redirecionar para o callback handler
+  if (code && !pathname.startsWith('/auth/callback')) {
+    const callbackUrl = new URL('/auth/callback', request.url)
+    callbackUrl.searchParams.set('code', code)
+    return NextResponse.redirect(callbackUrl)
+  }
+
+  // Rotas públicas (login + auth callback)
+  if (pathname.startsWith('/login') || pathname.startsWith('/auth/callback')) {
+    if (user && pathname.startsWith('/login')) return NextResponse.redirect(new URL('/dashboard', request.url))
     return supabaseResponse
   }
 
